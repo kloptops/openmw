@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.1.0)
 
+set(CMAKE_C_COMPILER_LAUNCHER ccache)
+set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+
 # for link time optimization, remove if cmake version is >= 3.9
 if(POLICY CMP0069) # LTO
     cmake_policy(SET CMP0069 NEW)

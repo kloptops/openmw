@@ -16,7 +16,7 @@ namespace Gui
         MYGUI_RTTI_DERIVED( ComboBox )
 
     protected:
-        void setPropertyOverride(const std::string& _key, const std::string& _value) override;
+        void setPropertyOverride(const std::string& _key, const std::string& _value);
     };
 
     class Button : public FontWrapper<MyGUI::Button>
@@ -58,7 +58,7 @@ namespace Gui
         void setCaption(const MyGUI::UString& _value) override;
 
     protected:
-        void setPropertyOverride(const std::string& _key, const std::string& _value) override;
+        void setPropertyOverride(const std::string& _key, const std::string& _value);
         std::string mFontSize;
     };
 
@@ -74,7 +74,7 @@ namespace Gui
         void initialiseOverride() override;
 
     protected:
-        void setPropertyOverride(const std::string& _key, const std::string& _value) override;
+        void setPropertyOverride(const std::string& _key, const std::string& _value);
         int getWidth();
         std::string mFontSize;
         bool mShrink = false;
@@ -91,7 +91,7 @@ namespace Gui
         void setCaption(const MyGUI::UString& _value) override;
 
     protected:
-        void setPropertyOverride(const std::string& _key, const std::string& _value) override;
+        void setPropertyOverride(const std::string& _key, const std::string& _value);
         std::string mFontSize;
     };
 
@@ -143,7 +143,7 @@ namespace Gui
         void align() override;
         MyGUI::IntSize getRequestedSize() override;
 
-        void setPropertyOverride(const std::string& _key, const std::string& _value) override;
+        void setPropertyOverride(const std::string& _key, const std::string& _value);
 
         void onWidgetCreated(MyGUI::Widget* _widget) override;
     };
@@ -162,7 +162,7 @@ namespace Gui
         void align() override;
         MyGUI::IntSize getRequestedSize() override;
 
-        void setPropertyOverride(const std::string& _key, const std::string& _value) override;
+        void setPropertyOverride(const std::string& _key, const std::string& _value);
 
         void onWidgetCreated(MyGUI::Widget* _widget) override;
     };

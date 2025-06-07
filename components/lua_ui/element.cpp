@@ -217,13 +217,12 @@ namespace LuaUi
 
     void Element::destroy()
     {
-        if (mRoot)
-        {
-            destroyWidget(mRoot);
-            mRoot = nullptr;
-            mLayout = sol::make_object(mLayout.lua_state(), sol::nil);
-        }
         sAllElements.erase(this);
+        if (!mRoot)
+            return;
+        destroyWidget(mRoot);
+        mRoot = nullptr;
+        mLayout = sol::make_object(mLayout.lua_state(), sol::nil);
     }
 
     void Element::attachToWidget(WidgetExtension* w)

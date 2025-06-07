@@ -48,7 +48,7 @@ namespace Gui
 
         void scrollToTop();
 
-        void setPropertyOverride(const std::string& _key, const std::string& _value) override;
+        void setPropertyOverride(const std::string& _key, const std::string& _value);
 
     protected:
         void initialiseOverride() override;

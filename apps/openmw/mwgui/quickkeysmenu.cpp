@@ -534,7 +534,7 @@ namespace MWGui
                     break;
                 }
                 case Type_Magic:
-                    std::string spellId = button->getUserString("Spell");
+                    std::string spellId = std::string(button->getUserString("Spell"));
                     key.mId = spellId;
                     break;
             }
