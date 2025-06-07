@@ -22,6 +22,16 @@
 
 namespace DetourNavigator
 {
+	/**
+	 * Fixes shit.
+	 */
+
+    template<typename OutputIt>
+    concept Vec3fOutputIterator = requires(OutputIt it, osg::Vec3f v) {
+        { *it++ = v };
+    };
+    
+
     template <std::output_iterator<osg::Vec3f> OutputIterator>
     class FromNavMeshCoordinatesIterator
     {
@@ -80,7 +90,7 @@ namespace DetourNavigator
 
     Status makeSmoothPath(const dtNavMeshQuery& navMeshQuery, const osg::Vec3f& start, const osg::Vec3f& end,
         std::span<dtPolyRef> polygonPath, std::size_t polygonPathSize, std::size_t maxSmoothPathSize,
-        std::output_iterator<osg::Vec3f> auto& out)
+        Vec3fOutputIterator auto& out)
     {
         assert(polygonPathSize <= polygonPath.size());
 
@@ -103,7 +113,7 @@ namespace DetourNavigator
 
     Status findSmoothPath(const dtNavMeshQuery& navMeshQuery, const osg::Vec3f& halfExtents, const osg::Vec3f& start,
         const osg::Vec3f& end, const Flags includeFlags, const AreaCosts& areaCosts, const DetourSettings& settings,
-        float endTolerance, std::output_iterator<osg::Vec3f> auto out)
+        float endTolerance, Vec3fOutputIterator auto out)
     {
         dtQueryFilter queryFilter;
         queryFilter.setIncludeFlags(includeFlags);
