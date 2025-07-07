@@ -135,7 +135,7 @@ namespace LuaUtil
 
         std::optional<std::string> Registry::nextKey(std::string_view key) const
         {
-            auto it = mIds.find(key);
+            auto it = mIds.find(std::string(key));
             if (it == mIds.end())
                 return std::nullopt;
             auto nextId = it->second + 1;
@@ -146,7 +146,7 @@ namespace LuaUtil
 
         std::optional<Info> Registry::operator[](std::string_view actionKey)
         {
-            auto iter = mIds.find(actionKey);
+            auto iter = mIds.find(std::string(actionKey));
             if (iter == mIds.end())
                 return std::nullopt;
             return mInfo[iter->second];
@@ -154,7 +154,7 @@ namespace LuaUtil
 
         Registry::Id Registry::safeIdByKey(std::string_view key)
         {
-            auto iter = mIds.find(key);
+            auto iter = mIds.find(std::string(key));
             if (iter == mIds.end())
                 throw std::logic_error(Misc::StringUtils::format("Unknown action key: \"%s\"", key));
             return iter->second;
@@ -268,7 +268,7 @@ namespace LuaUtil
     {
         Registry::Id Registry::safeIdByKey(std::string_view key)
         {
-            auto it = mIds.find(key);
+            auto it = mIds.find(std::string(key));
             if (it == mIds.end())
                 throw std::domain_error(Misc::StringUtils::format("Unknown trigger key \"%s\"", key));
             return it->second;
@@ -290,7 +290,7 @@ namespace LuaUtil
 
         std::optional<Info> Registry::operator[](std::string_view key)
         {
-            auto iter = mIds.find(key);
+            auto iter = mIds.find(std::string(key));
             if (iter == mIds.end())
                 return std::nullopt;
             return mInfo[iter->second];
