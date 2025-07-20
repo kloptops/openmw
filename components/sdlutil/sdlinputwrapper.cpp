@@ -350,6 +350,7 @@ namespace SDLUtil
     void InputWrapper::updateMouseSettings()
     {
         mGrabPointer = mWantGrab && mMouseInWindow && mWindowHasFocus;
+        mGrabPointer = true;
         SDL_SetWindowGrab(mSDLWindow, mGrabPointer && mAllowGrab ? SDL_TRUE : SDL_FALSE);
 
         SDL_ShowCursor(mWantMouseVisible || !mWindowHasFocus);
