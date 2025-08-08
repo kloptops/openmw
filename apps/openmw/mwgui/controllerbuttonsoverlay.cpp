@@ -8,7 +8,7 @@
 
 namespace MWGui
 {
-    static constexpr ControllerButtonsOverlay::ButtonDefinition sButtonDefs[] = {
+    static const ControllerButtonsOverlay::ButtonDefinition sButtonDefs[] = {
         { ControllerButtonsOverlay::Button::Button_A, "A", ControllerButtonsOverlay::InputType_Button,
             { .mButton = SDL_CONTROLLER_BUTTON_A }, &ControllerButtons::mA },
         { ControllerButtonsOverlay::Button::Button_B, "B", ControllerButtonsOverlay::InputType_Button,
