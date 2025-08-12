@@ -1021,7 +1021,9 @@ namespace MWGui
 
     SelectSkillDialog::SelectSkillDialog()
         : WindowModal("openmw_chargen_select_skill.layout")
+        , mControllerFocus(0)
         , mSkillId(ESM::Skill::Block)
+        , mNumSkillsPerSpecialization{}
     {
         // Centre dialog
         center();
@@ -1063,7 +1065,6 @@ namespace MWGui
 
         if (Settings::gui().mControllerMenus)
         {
-            mControllerFocus = 0;
             if (mSkillButtons.size() > 0)
                 mSkillButtons[0]->setStateSelected(true);
 
