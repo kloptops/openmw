@@ -159,10 +159,11 @@ namespace Resource
     {
     public:
         SetFilterSettingsControllerVisitor(
-            osg::Texture::FilterMode minFilter, osg::Texture::FilterMode magFilter, int maxAnisotropy)
+            osg::Texture::FilterMode minFilter, osg::Texture::FilterMode magFilter, int maxAnisotropy, bool unRefImageDataAfterApply)
             : mMinFilter(minFilter)
             , mMagFilter(magFilter)
             , mMaxAnisotropy(maxAnisotropy)
+            , mUnRefImageDataAfterApply(unRefImageDataAfterApply)
         {
         }
 
@@ -177,6 +178,7 @@ namespace Resource
                     tex->setFilter(osg::Texture::MIN_FILTER, mMinFilter);
                     tex->setFilter(osg::Texture::MAG_FILTER, mMagFilter);
                     tex->setMaxAnisotropy(mMaxAnisotropy);
+                    tex->setUnRefImageDataAfterApply(mUnRefImageDataAfterApply);
                 }
             }
         }
@@ -185,6 +187,7 @@ namespace Resource
         osg::Texture::FilterMode mMinFilter;
         osg::Texture::FilterMode mMagFilter;
         int mMaxAnisotropy;
+        bool mUnRefImageDataAfterApply;
     };
 
     /// Set texture filtering settings on textures contained in StateSets.
@@ -192,11 +195,12 @@ namespace Resource
     {
     public:
         SetFilterSettingsVisitor(
-            osg::Texture::FilterMode minFilter, osg::Texture::FilterMode magFilter, int maxAnisotropy)
+            osg::Texture::FilterMode minFilter, osg::Texture::FilterMode magFilter, int maxAnisotropy, bool unRefImageDataAfterApply)
             : osg::NodeVisitor(TRAVERSE_ALL_CHILDREN)
             , mMinFilter(minFilter)
             , mMagFilter(magFilter)
             , mMaxAnisotropy(maxAnisotropy)
+            , mUnRefImageDataAfterApply(unRefImageDataAfterApply)
         {
         }
 
@@ -228,6 +232,7 @@ namespace Resource
                 tex->setFilter(osg::Texture::MIN_FILTER, mMinFilter);
                 tex->setFilter(osg::Texture::MAG_FILTER, mMagFilter);
                 tex->setMaxAnisotropy(mMaxAnisotropy);
+                tex->setUnRefImageDataAfterApply(mUnRefImageDataAfterApply);
             }
         }
 
@@ -235,6 +240,7 @@ namespace Resource
         osg::Texture::FilterMode mMinFilter;
         osg::Texture::FilterMode mMagFilter;
         int mMaxAnisotropy;
+        bool mUnRefImageDataAfterApply;
     };
 
     // Check Collada extra descriptions
@@ -463,7 +469,7 @@ namespace Resource
         , mMinFilter(osg::Texture::LINEAR_MIPMAP_LINEAR)
         , mMagFilter(osg::Texture::LINEAR)
         , mMaxAnisotropy(1)
-        , mUnRefImageDataAfterApply(false)
+        , mUnRefImageDataAfterApply(true)
         , mParticleSystemMask(~0u)
     {
     }
@@ -1013,10 +1019,10 @@ namespace Resource
             }
 
             // set filtering settings
-            SetFilterSettingsVisitor setFilterSettingsVisitor(mMinFilter, mMagFilter, mMaxAnisotropy);
+            SetFilterSettingsVisitor setFilterSettingsVisitor(mMinFilter, mMagFilter, mMaxAnisotropy, mUnRefImageDataAfterApply);
             loaded->accept(setFilterSettingsVisitor);
             SetFilterSettingsControllerVisitor setFilterSettingsControllerVisitor(
-                mMinFilter, mMagFilter, mMaxAnisotropy);
+                mMinFilter, mMagFilter, mMaxAnisotropy, mUnRefImageDataAfterApply);
             loaded->accept(setFilterSettingsControllerVisitor);
 
             SceneUtil::ReplaceDepthVisitor replaceDepthVisitor;
@@ -1168,8 +1174,8 @@ namespace Resource
         mMagFilter = mag;
         mMaxAnisotropy = std::max(1, maxAnisotropy);
 
-        SetFilterSettingsControllerVisitor setFilterSettingsControllerVisitor(mMinFilter, mMagFilter, mMaxAnisotropy);
-        SetFilterSettingsVisitor setFilterSettingsVisitor(mMinFilter, mMagFilter, mMaxAnisotropy);
+        SetFilterSettingsControllerVisitor setFilterSettingsControllerVisitor(mMinFilter, mMagFilter, mMaxAnisotropy, mUnRefImageDataAfterApply);
+        SetFilterSettingsVisitor setFilterSettingsVisitor(mMinFilter, mMagFilter, mMaxAnisotropy, mUnRefImageDataAfterApply);
 
         mCache->accept(setFilterSettingsVisitor);
         mCache->accept(setFilterSettingsControllerVisitor);
@@ -1180,6 +1186,7 @@ namespace Resource
         tex->setFilter(osg::Texture::MIN_FILTER, mMinFilter);
         tex->setFilter(osg::Texture::MAG_FILTER, mMagFilter);
         tex->setMaxAnisotropy(mMaxAnisotropy);
+        tex->setUnRefImageDataAfterApply(mUnRefImageDataAfterApply);
     }
 
     void SceneManager::setUnRefImageDataAfterApply(bool unref)

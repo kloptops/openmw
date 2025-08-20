@@ -737,7 +737,7 @@ void OMW::Engine::prepareEngine()
         mVFS.get(), Settings::cells().mCacheExpiryDelay, &mEncoder.get()->getStatelessEncoder());
     mResourceSystem->getSceneManager()->getShaderManager().setMaxTextureUnits(mGlMaxTextureImageUnits);
     mResourceSystem->getSceneManager()->setUnRefImageDataAfterApply(
-        false); // keep to Off for now to allow better state sharing
+        true); // Enable to reduce memory usage by freeing texture data after GPU upload
     mResourceSystem->getSceneManager()->setFilterSettings(Settings::general().mTextureMagFilter,
         Settings::general().mTextureMinFilter, Settings::general().mTextureMipmap, Settings::general().mAnisotropy);
     mEnvironment.setResourceSystem(*mResourceSystem);
