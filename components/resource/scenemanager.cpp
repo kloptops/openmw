@@ -846,7 +846,17 @@ namespace Resource
     {
         const std::string_view ext = Misc::getFileExtension(normalizedFilename.value());
         if (ext == "nif")
-            return NifOsg::Loader::load(*nifFileManager->get(normalizedFilename), imageManager, materialMgr);
+        {
+            // Temporarily disable image caching during NIF loading to reduce memory spikes
+            bool oldCacheState = imageManager->isCacheEnabled();
+            imageManager->setCacheEnabled(false);
+
+            osg::ref_ptr<osg::Node> result = NifOsg::Loader::load(*nifFileManager->get(normalizedFilename), imageManager, materialMgr);
+
+            // Restore original cache state
+            imageManager->setCacheEnabled(oldCacheState);
+            return result;
+        }
         else if (ext == "spt")
         {
             Log(Debug::Warning) << "Ignoring SpeedTree data file " << normalizedFilename;

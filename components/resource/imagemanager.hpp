@@ -33,7 +33,12 @@ namespace Resource
 
         void reportStats(unsigned int frameNumber, osg::Stats* stats) const override;
 
+        /// Enable or disable caching of loaded images
+        void setCacheEnabled(bool enabled) { mCacheEnabled = enabled; }
+        bool isCacheEnabled() const { return mCacheEnabled; }
+
     private:
+        bool mCacheEnabled = true;
         osg::ref_ptr<osg::Image> mWarningImage;
         osg::ref_ptr<osgDB::Options> mOptions;
         osg::ref_ptr<osgDB::Options> mOptionsNoFlip;

@@ -87,10 +87,15 @@ namespace Resource
 
     osg::ref_ptr<osg::Image> ImageManager::getImage(VFS::Path::NormalizedView path, bool disableFlip)
     {
-        osg::ref_ptr<osg::Object> obj = mCache->getRefFromObjectCache(path);
-        if (obj)
-            return osg::ref_ptr<osg::Image>(static_cast<osg::Image*>(obj.get()));
-        else
+        // Check cache first if caching is enabled
+        if (mCacheEnabled)
+        {
+            osg::ref_ptr<osg::Object> obj = mCache->getRefFromObjectCache(path);
+            if (obj)
+                return osg::ref_ptr<osg::Image>(static_cast<osg::Image*>(obj.get()));
+        }
+
+        // Load image from disk
         {
             Files::IStreamPtr stream;
             try
@@ -100,7 +105,8 @@ namespace Resource
             catch (std::exception& e)
             {
                 Log(Debug::Error) << "Failed to open image: " << e.what();
-                mCache->addEntryToObjectCache(path.value(), mWarningImage);
+                if (mCacheEnabled)
+                    mCache->addEntryToObjectCache(path.value(), mWarningImage);
                 return mWarningImage;
             }
 
@@ -109,7 +115,8 @@ namespace Resource
             if (!reader)
             {
                 Log(Debug::Error) << "Error loading " << path << ": no readerwriter for '" << ext << "' found";
-                mCache->addEntryToObjectCache(path.value(), mWarningImage);
+                if (mCacheEnabled)
+                    mCache->addEntryToObjectCache(path.value(), mWarningImage);
                 return mWarningImage;
             }
 
@@ -122,7 +129,8 @@ namespace Resource
                 if (stream->gcount() != 18)
                 {
                     Log(Debug::Error) << "Error loading " << path << ": couldn't read TGA header";
-                    mCache->addEntryToObjectCache(path.value(), mWarningImage);
+                    if (mCacheEnabled)
+                        mCache->addEntryToObjectCache(path.value(), mWarningImage);
                     return mWarningImage;
                 }
                 int type = header[2];
@@ -142,7 +150,8 @@ namespace Resource
             {
                 Log(Debug::Error) << "Error loading " << path << ": " << result.message() << " code "
                                   << result.status();
-                mCache->addEntryToObjectCache(path.value(), mWarningImage);
+                if (mCacheEnabled)
+                    mCache->addEntryToObjectCache(path.value(), mWarningImage);
                 return mWarningImage;
             }
 
@@ -155,7 +164,8 @@ namespace Resource
                 if (!uncompress)
                 {
                     Log(Debug::Error) << "Error loading " << path << ": no S3TC texture compression support installed";
-                    mCache->addEntryToObjectCache(path.value(), mWarningImage);
+                    if (mCacheEnabled)
+                        mCache->addEntryToObjectCache(path.value(), mWarningImage);
                     return mWarningImage;
                 }
                 else
@@ -186,7 +196,9 @@ namespace Resource
                 image = newImage;
             }
 
-            mCache->addEntryToObjectCache(path.value(), image);
+            // Only cache if caching is enabled
+            if (mCacheEnabled)
+                mCache->addEntryToObjectCache(path.value(), image);
             return image;
         }
     }
