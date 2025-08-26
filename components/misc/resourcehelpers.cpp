@@ -109,20 +109,39 @@ std::string Misc::ResourceHelpers::correctResourcePath(std::span<const std::stri
 // Note: Bethesda at some point converted all their BSA textures from tga to dds for increased load speed,
 // but all texture file name references were kept as .tga. So we pass ext=".dds" to all helpers
 // looking for textures.
+// We now prioritize KTX files first (for ASTC and other modern formats), then fall back to DDS, then original extension.
 
 std::string Misc::ResourceHelpers::correctTexturePath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    return correctResourcePath({ { "textures", "bookart" } }, resPath, vfs, ".dds");
+    // Try KTX first, then DDS, then original extension
+    std::string correctedPath = correctResourcePath({ { "textures", "bookart" } }, resPath, vfs, ".ktx");
+    if (!vfs->exists(correctedPath))
+    {
+        correctedPath = correctResourcePath({ { "textures", "bookart" } }, resPath, vfs, ".dds");
+    }
+    return correctedPath;
 }
 
 std::string Misc::ResourceHelpers::correctIconPath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    return correctResourcePath({ { "icons" } }, resPath, vfs, ".dds");
+    // Try KTX first, then DDS, then original extension
+    std::string correctedPath = correctResourcePath({ { "icons" } }, resPath, vfs, ".ktx");
+    if (!vfs->exists(correctedPath))
+    {
+        correctedPath = correctResourcePath({ { "icons" } }, resPath, vfs, ".dds");
+    }
+    return correctedPath;
 }
 
 std::string Misc::ResourceHelpers::correctBookartPath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    return correctResourcePath({ { "bookart", "textures" } }, resPath, vfs, ".dds");
+    // Try KTX first, then DDS, then original extension
+    std::string correctedPath = correctResourcePath({ { "bookart", "textures" } }, resPath, vfs, ".ktx");
+    if (!vfs->exists(correctedPath))
+    {
+        correctedPath = correctResourcePath({ { "bookart", "textures" } }, resPath, vfs, ".dds");
+    }
+    return correctedPath;
 }
 
 std::string Misc::ResourceHelpers::correctBookartPath(
