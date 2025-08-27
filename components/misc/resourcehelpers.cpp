@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <sstream>
 #include <string_view>
+#include <array>
 
 #include <components/esm/common.hpp>
 #include <components/esm/refid.hpp>
@@ -25,6 +26,32 @@ namespace
             return true;
         }
         return false;
+    }
+
+    // Texture format priority table - higher index = higher priority
+    constexpr std::array<std::string_view, 3> sTextureExtensionPriority = {
+        //".bmp",  // Original format (lowest priority)
+        //".tga",  // Original format (lowest priority)
+        ".dds",  // DDS compressed (medium priority)
+        //".astc",  // Raw ASTC frames
+        ".ktx"   // KTX modern formats (highest priority)
+    };
+
+    std::string findBestTextureVariant(std::span<const std::string_view> topLevelDirectories,
+        std::string_view resPath, const VFS::Manager* vfs)
+    {
+        // Try extensions in reverse order (highest priority first)
+        for (auto it = sTextureExtensionPriority.rbegin(); it != sTextureExtensionPriority.rend(); ++it)
+        {
+            std::string candidate = Misc::ResourceHelpers::correctResourcePath(topLevelDirectories, resPath, vfs, *it);
+            if (vfs->exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        // Fall back to original extension if no priority variants found
+        return Misc::ResourceHelpers::correctResourcePath(topLevelDirectories, resPath, vfs);
     }
 }
 
@@ -109,39 +136,20 @@ std::string Misc::ResourceHelpers::correctResourcePath(std::span<const std::stri
 // Note: Bethesda at some point converted all their BSA textures from tga to dds for increased load speed,
 // but all texture file name references were kept as .tga. So we pass ext=".dds" to all helpers
 // looking for textures.
-// We now prioritize KTX files first (for ASTC and other modern formats), then fall back to DDS, then original extension.
 
 std::string Misc::ResourceHelpers::correctTexturePath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    // Try KTX first, then DDS, then original extension
-    std::string correctedPath = correctResourcePath({ { "textures", "bookart" } }, resPath, vfs, ".ktx");
-    if (!vfs->exists(correctedPath))
-    {
-        correctedPath = correctResourcePath({ { "textures", "bookart" } }, resPath, vfs, ".dds");
-    }
-    return correctedPath;
+    return findBestTextureVariant({ { "textures", "bookart" } }, resPath, vfs);
 }
 
 std::string Misc::ResourceHelpers::correctIconPath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    // Try KTX first, then DDS, then original extension
-    std::string correctedPath = correctResourcePath({ { "icons" } }, resPath, vfs, ".ktx");
-    if (!vfs->exists(correctedPath))
-    {
-        correctedPath = correctResourcePath({ { "icons" } }, resPath, vfs, ".dds");
-    }
-    return correctedPath;
+    return findBestTextureVariant({ { "icons" } }, resPath, vfs);
 }
 
 std::string Misc::ResourceHelpers::correctBookartPath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    // Try KTX first, then DDS, then original extension
-    std::string correctedPath = correctResourcePath({ { "bookart", "textures" } }, resPath, vfs, ".ktx");
-    if (!vfs->exists(correctedPath))
-    {
-        correctedPath = correctResourcePath({ { "bookart", "textures" } }, resPath, vfs, ".dds");
-    }
-    return correctedPath;
+    return findBestTextureVariant({ { "bookart", "textures" } }, resPath, vfs);
 }
 
 std::string Misc::ResourceHelpers::correctBookartPath(
