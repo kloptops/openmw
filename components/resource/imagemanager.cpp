@@ -5,7 +5,6 @@
 
 #include <components/debug/debuglog.hpp>
 #include <components/misc/pathhelpers.hpp>
-#include <components/misc/resourcehelpers.hpp>
 #include <components/sceneutil/glextensions.hpp>
 #include <components/vfs/manager.hpp>
 #include <components/vfs/pathutil.hpp>
@@ -88,33 +87,7 @@ namespace Resource
 
     osg::ref_ptr<osg::Image> ImageManager::getImage(VFS::Path::NormalizedView path, bool disableFlip)
     {
-        // Always prioritize KTX over DDS over original format
-        std::string resolvedPath(path.value());
-
-        // Try KTX first (highest priority)
-        VFS::Path::Normalized ktxPath(path);
-        ktxPath.changeExtension("ktx");
-        if (mVFS->exists(ktxPath))
-        {
-            resolvedPath = ktxPath.value();
-            Log(Debug::Info) << "ImageManager: Using KTX format " << path << " -> " << resolvedPath;
-        }
-        // Then try DDS (second priority)
-        else
-        {
-            VFS::Path::Normalized ddsPath(path);
-            ddsPath.changeExtension("dds");
-            if (mVFS->exists(ddsPath))
-            {
-                resolvedPath = ddsPath.value();
-                Log(Debug::Info) << "ImageManager: Using DDS format " << path << " -> " << resolvedPath;
-            }
-            // Otherwise use original path (lowest priority)
-        }
-
-        // Use the resolved path for caching
-        VFS::Path::Normalized finalPath(resolvedPath);
-        osg::ref_ptr<osg::Object> obj = mCache->getRefFromObjectCache(finalPath);
+        osg::ref_ptr<osg::Object> obj = mCache->getRefFromObjectCache(path);
         if (obj)
             return osg::ref_ptr<osg::Image>(static_cast<osg::Image*>(obj.get()));
         else
@@ -122,21 +95,21 @@ namespace Resource
             Files::IStreamPtr stream;
             try
             {
-                stream = mVFS->get(finalPath);
+                stream = mVFS->get(path);
             }
             catch (std::exception& e)
             {
                 Log(Debug::Error) << "Failed to open image: " << e.what();
-                mCache->addEntryToObjectCache(finalPath.value(), mWarningImage);
+                mCache->addEntryToObjectCache(path.value(), mWarningImage);
                 return mWarningImage;
             }
 
-            const std::string ext(Misc::getFileExtension(finalPath.value()));
+            const std::string ext(Misc::getFileExtension(path.value()));
             osgDB::ReaderWriter* reader = osgDB::Registry::instance()->getReaderWriterForExtension(ext);
             if (!reader)
             {
-                Log(Debug::Error) << "Error loading " << finalPath << ": no readerwriter for '" << ext << "' found";
-                mCache->addEntryToObjectCache(finalPath.value(), mWarningImage);
+                Log(Debug::Error) << "Error loading " << path << ": no readerwriter for '" << ext << "' found";
+                mCache->addEntryToObjectCache(path.value(), mWarningImage);
                 return mWarningImage;
             }
 
@@ -148,8 +121,8 @@ namespace Resource
                 stream->read((char*)header, 18);
                 if (stream->gcount() != 18)
                 {
-                    Log(Debug::Error) << "Error loading " << finalPath << ": couldn't read TGA header";
-                    mCache->addEntryToObjectCache(finalPath.value(), mWarningImage);
+                    Log(Debug::Error) << "Error loading " << path << ": couldn't read TGA header";
+                    mCache->addEntryToObjectCache(path.value(), mWarningImage);
                     return mWarningImage;
                 }
                 int type = header[2];
@@ -167,22 +140,22 @@ namespace Resource
                 = reader->readImage(*stream, disableFlip ? mOptionsNoFlip : mOptions);
             if (!result.success())
             {
-                Log(Debug::Error) << "Error loading " << finalPath << ": " << result.message() << " code "
+                Log(Debug::Error) << "Error loading " << path << ": " << result.message() << " code "
                                   << result.status();
-                mCache->addEntryToObjectCache(finalPath.value(), mWarningImage);
+                mCache->addEntryToObjectCache(path.value(), mWarningImage);
                 return mWarningImage;
             }
 
             osg::ref_ptr<osg::Image> image = result.getImage();
 
-            image->setFileName(std::string(finalPath.value()));
+            image->setFileName(std::string(path.value()));
             if (!checkSupported(image))
             {
                 static bool uncompress = (getenv("OPENMW_DECOMPRESS_TEXTURES") != nullptr);
                 if (!uncompress)
                 {
-                    Log(Debug::Error) << "Error loading " << finalPath << ": no S3TC texture compression support installed";
-                    mCache->addEntryToObjectCache(finalPath.value(), mWarningImage);
+                    Log(Debug::Error) << "Error loading " << path << ": no S3TC texture compression support installed";
+                    mCache->addEntryToObjectCache(path.value(), mWarningImage);
                     return mWarningImage;
                 }
                 else
@@ -213,7 +186,7 @@ namespace Resource
                 image = newImage;
             }
 
-            mCache->addEntryToObjectCache(finalPath.value(), image);
+            mCache->addEntryToObjectCache(path.value(), image);
             return image;
         }
     }
