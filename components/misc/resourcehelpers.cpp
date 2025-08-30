@@ -29,15 +29,12 @@ namespace
     }
 
     // Texture format priority table - higher index = higher priority
-    constexpr std::array<std::string_view, 3> sTextureExtensionPriority = {
-        //".bmp",  // Original format (lowest priority)
-        //".tga",  // Original format (lowest priority)
+    constexpr std::array<std::string_view, 2> sTextureExtensionPriority = {
         ".dds",  // DDS compressed (medium priority)
-        //".astc",  // Raw ASTC frames
         ".ktx"   // KTX modern formats (highest priority)
     };
 
-    std::string findBestTextureVariant(std::span<const std::string_view> topLevelDirectories,
+    std::string findBestTextureVariantWithDirs(std::span<const std::string_view> topLevelDirectories,
         std::string_view resPath, const VFS::Manager* vfs)
     {
         // Try extensions in reverse order (highest priority first)
@@ -137,19 +134,50 @@ std::string Misc::ResourceHelpers::correctResourcePath(std::span<const std::stri
 // but all texture file name references were kept as .tga. So we pass ext=".dds" to all helpers
 // looking for textures.
 
+std::string Misc::ResourceHelpers::findBestTextureVariant(const std::string& path, const VFS::Manager* vfs)
+{
+    // Get the current extension
+    std::string ext(Misc::getFileExtension(path));
+
+    // Only process texture formats
+    if (!Misc::StringUtils::ciEqual(ext, "dds") && !Misc::StringUtils::ciEqual(ext, "tga") &&
+        !Misc::StringUtils::ciEqual(ext, "bmp") && !Misc::StringUtils::ciEqual(ext, "ktx"))
+        return path;
+
+    // Get path without extension
+    VFS::Path::Normalized basePath(path);
+    size_t dotPos = path.rfind('.');
+    if (dotPos == std::string::npos)
+        return path;
+    std::string pathWithoutExt = path.substr(0, dotPos);
+
+    // Try each extension in priority order (highest to lowest)
+    for (auto it = sTextureExtensionPriority.rbegin(); it != sTextureExtensionPriority.rend(); ++it)
+    {
+        std::string candidate = pathWithoutExt + std::string(*it);
+        if (vfs->exists(candidate))
+        {
+            return candidate;
+        }
+    }
+
+    // No priority format found, return original
+    return path;
+}
+
 std::string Misc::ResourceHelpers::correctTexturePath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    return findBestTextureVariant({ { "textures", "bookart" } }, resPath, vfs);
+    return findBestTextureVariantWithDirs({ { "textures", "bookart" } }, resPath, vfs);
 }
 
 std::string Misc::ResourceHelpers::correctIconPath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    return findBestTextureVariant({ { "icons" } }, resPath, vfs);
+    return findBestTextureVariantWithDirs({ { "icons" } }, resPath, vfs);
 }
 
 std::string Misc::ResourceHelpers::correctBookartPath(std::string_view resPath, const VFS::Manager* vfs)
 {
-    return findBestTextureVariant({ { "bookart", "textures" } }, resPath, vfs);
+    return findBestTextureVariantWithDirs({ { "bookart", "textures" } }, resPath, vfs);
 }
 
 std::string Misc::ResourceHelpers::correctBookartPath(
