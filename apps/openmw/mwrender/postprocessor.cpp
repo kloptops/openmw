@@ -150,7 +150,6 @@ namespace MWRender
         mHUDCamera->setCullCallback(new HUDCullCallback);
         mViewer->getCamera()->addCullCallback(mPingPongCull);
 
-        // Initialize scaled viewport state set
         mScaledViewportStateSet->setAttribute(mScaledViewport);
 
         // resolves the multisampled depth buffer and optionally draws an additional depth postpass
@@ -285,7 +284,6 @@ namespace MWRender
 
         if (nv.getVisitorType() == osg::NodeVisitor::CULL_VISITOR)
         {
-            // Push a small, scaled viewport for all children. This will be overridden by the HUD camera's callback.
             osgUtil::CullVisitor* cv = static_cast<osgUtil::CullVisitor*>(&nv);
             mScaledViewport->setViewport(0, 0, renderWidth(), renderHeight());
             cv->pushStateSet(mScaledViewportStateSet.get());
@@ -667,8 +665,6 @@ namespace MWRender
 
                 node.mHandle = technique;
 
-                // Begin changes
-                // Check if this is the absolute final pass of the entire post-processing chain.
                 bool isFinalPass
                     = (std::next(tech_it) == mTechniques.end() && std::next(pass_it) == technique->getPasses().end());
                 // End changes
@@ -708,13 +704,10 @@ namespace MWRender
                 // Begin changes
                 else if (!isFinalPass)
                 {
-                    // This is an intermediate pass that renders to a ping-pong buffer.
-                    // It must use the small, scaled viewport.
                     subPass.mStateSet->setAttribute(new osg::Viewport(0, 0, renderWidth(), renderHeight()));
                 }
-                // else: This is the final pass. We do *not* set a viewport, allowing it
-                // to inherit the full-sized one from the HUD camera to correctly fill the screen.
-                // End changes
+                // else do *not* set a scaled viewport, allowing it to inherit the full-sized one from the
+                // HUD camera to correctly fill the screen
 
                 for (const auto& name : pass->getRenderTargets())
                 {
